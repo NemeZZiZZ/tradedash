@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useScreenshot } from "react-klinecharts-ui";
 import { useT } from "@/i18n";
 import { Copy, Check, Download } from "lucide-react";
@@ -20,13 +20,19 @@ export function ScreenshotDialog({ open, onOpenChange }: ScreenshotDialogProps) 
   const { screenshotUrl, download } = useScreenshot();
   const [copied, setCopied] = useState(false);
 
+  // Clear the "copied" badge after a delay; cleared on unmount/dialog close.
+  useEffect(() => {
+    if (!copied) return;
+    const id = setTimeout(() => setCopied(false), 1500);
+    return () => clearTimeout(id);
+  }, [copied]);
+
   const copy = async () => {
     if (!screenshotUrl) return;
     try {
       const blob = await (await fetch(screenshotUrl)).blob();
       await navigator.clipboard.write([new ClipboardItem({ [blob.type]: blob })]);
       setCopied(true);
-      setTimeout(() => setCopied(false), 1500);
     } catch {
       /* clipboard unavailable / denied */
     }

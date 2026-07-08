@@ -83,7 +83,7 @@ export function TerminalActionsProvider({ children }: { children: React.ReactNod
   const { startReplay } = useReplay();
   const { startMeasure } = useMeasure();
 
-  const [pendingPrice, setPendingPrice] = useState<number | null>(null);
+  const [pendingPrice, setPendingPrice] = useState<Partial<Record<ModalKey, number>>>({});
 
   const set = useCallback(
     (key: ModalKey, value: boolean) => setState((s) => ({ ...s, [key]: value })),
@@ -91,7 +91,9 @@ export function TerminalActionsProvider({ children }: { children: React.ReactNod
   );
   const open = useCallback(
     (key: ModalKey, opts?: OpenOptions) => {
-      setPendingPrice(opts?.price ?? null);
+      if (opts?.price != null) {
+        setPendingPrice((p) => ({ ...p, [key]: opts.price }));
+      }
       set(key, true);
     },
     [set],
@@ -156,15 +158,21 @@ export function TerminalActionsProvider({ children }: { children: React.ReactNod
       <ScreenshotDialog open={state.screenshot} onOpenChange={(o) => set("screenshot", o)} />
       <OrderLinesDialog
         open={state.orderLines}
-        onOpenChange={(o) => set("orderLines", o)}
-        initialPrice={pendingPrice}
+        onOpenChange={(o) => {
+          set("orderLines", o);
+          if (!o) setPendingPrice((p) => ({ ...p, orderLines: undefined }));
+        }}
+        initialPrice={pendingPrice.orderLines ?? null}
       />
       <LayoutManagerDialog open={state.layouts} onOpenChange={(o) => set("layouts", o)} />
       <CompareDialog open={state.compare} onOpenChange={(o) => set("compare", o)} />
       <AlertsDialog
         open={state.alerts}
-        onOpenChange={(o) => set("alerts", o)}
-        initialPrice={pendingPrice}
+        onOpenChange={(o) => {
+          set("alerts", o);
+          if (!o) setPendingPrice((p) => ({ ...p, alerts: undefined }));
+        }}
+        initialPrice={pendingPrice.alerts ?? null}
       />
       <AnnotationsDialog open={state.annotations} onOpenChange={(o) => set("annotations", o)} />
       <ScriptEditorDialog open={state.script} onOpenChange={(o) => set("script", o)} />

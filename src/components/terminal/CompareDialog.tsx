@@ -27,11 +27,11 @@ export function CompareDialog({ open, onOpenChange }: CompareDialogProps) {
   const [busy, setBusy] = useState(false);
 
   const add = async () => {
-    const t = ticker.trim().toUpperCase();
-    if (!t) return;
+    const clean = ticker.trim().toUpperCase();
+    if (!clean) return;
     setBusy(true);
     try {
-      await addSymbol(t, PALETTE[symbols.length % PALETTE.length]);
+      await addSymbol(clean, PALETTE[symbols.length % PALETTE.length]);
       setTicker("");
     } finally {
       setBusy(false);
