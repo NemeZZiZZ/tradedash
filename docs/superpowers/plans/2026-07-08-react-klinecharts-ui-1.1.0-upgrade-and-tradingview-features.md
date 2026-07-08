@@ -1,12 +1,12 @@
-# react-klinecharts-ui 1.1.0 Upgrade + TradingView Features — Implementation Plan
+# react-klinecharts-ui 1.2.0 Upgrade + TradingView Features — Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Upgrade TradeDash from `react-klinecharts-ui@0.6.0` to `@1.1.0`, fix the audit-found bugs, and add four TradingView-parity features (multi-chart grid, Object Tree, indicator-based alerts + depth overlay, history pagination) plus close the `useHotkeys`/`useChartAxes` hook-coverage gap.
+**Goal:** Upgrade TradeDash from `react-klinecharts-ui@0.6.0` to `@1.2.0`, fix the audit-found bugs, and add four TradingView-parity features (multi-chart grid, Object Tree, indicator-based alerts + depth overlay, history pagination) plus close the `useHotkeys`/`useChartAxes` hook-coverage gap.
 
-**Architecture:** The chart renderer stays `react-klinecharts` `<KLineChart>` (bumped to `0.3.0`); `react-klinecharts-ui@1.1.0` provides `WorkspaceProvider`/`useChartSync` for the multi-chart grid, a `storage` option for persistence, and `AlertTarget` for indicator alerts. The default view becomes "a workspace grid of one cell" so every feature is exercised without a separate code path. Dialogs stay single/shared and operate on the active cell via a small `ActiveCellProvider`.
+**Architecture:** The chart renderer stays `react-klinecharts` `<KLineChart>` (bumped to `0.3.0`); `react-klinecharts-ui@1.2.0` provides `WorkspaceProvider`/`useChartSync` for the multi-chart grid, a `storage` option for persistence, and `AlertTarget` for indicator alerts. The default view becomes "a workspace grid of one cell" so every feature is exercised without a separate code path. Dialogs stay single/shared and operate on the active cell via a small `ActiveCellProvider`.
 
-**Tech Stack:** React 19, TypeScript, Vite 6, Tailwind v4, Base UI (shadcn-style), react-klinecharts-ui 1.1.0, react-klinecharts 0.3.0, klinecharts 10.0.0-beta3, Vitest, ESLint flat config.
+**Tech Stack:** React 19, TypeScript, Vite 6, Tailwind v4, Base UI (shadcn-style), react-klinecharts-ui 1.2.0, react-klinecharts 0.3.0, klinecharts 10.0.0-beta3, Vitest, ESLint flat config.
 
 ## Global Constraints
 
@@ -35,7 +35,7 @@
 
 ## Phase 1 — Upgrade & migrate types
 
-### Task 1: Upgrade deps to react-klinecharts-ui@1.1.0 + react-klinecharts@0.3.0, migrate type imports
+### Task 1: Upgrade deps to react-klinecharts-ui@1.2.0 + react-klinecharts@0.3.0, migrate type imports
 
 **Files:**
 - Modify: `package.json`
@@ -46,7 +46,7 @@
 
 **Interfaces:**
 - Consumes: nothing (first task)
-- Produces: a project that typechecks, builds, lints, and tests green against `react-klinecharts-ui@1.1.0` and `react-klinecharts@0.3.0`. All chart types (`Chart`, `KLineData`, `SymbolInfo`, `OverlayTemplate`) are imported from `klinecharts`, not `react-klinecharts`.
+- Produces: a project that typechecks, builds, lints, and tests green against `react-klinecharts-ui@1.2.0` and `react-klinecharts@0.3.0`. All chart types (`Chart`, `KLineData`, `SymbolInfo`, `OverlayTemplate`) are imported from `klinecharts`, not `react-klinecharts`.
 
 - [ ] **Step 1: Bump the two dependency versions in `package.json`**
 
@@ -54,7 +54,7 @@ In `package.json`, change these two lines inside `dependencies`:
 
 ```json
     "react-klinecharts": "0.3.0",
-    "react-klinecharts-ui": "1.1.0",
+    "react-klinecharts-ui": "1.2.0",
 ```
 
 (leave `klinecharts: 10.0.0-beta3` unchanged).
@@ -62,11 +62,11 @@ In `package.json`, change these two lines inside `dependencies`:
 - [ ] **Step 2: Install the new versions**
 
 Run: `pnpm install`
-Expected: install succeeds; `pnpm-store` resolves `react-klinecharts-ui@1.1.0` and `react-klinecharts@0.3.0`. Verify with `pnpm list react-klinecharts-ui react-klinecharts` — both show the new versions.
+Expected: install succeeds; `pnpm-store` resolves `react-klinecharts-ui@1.2.0` and `react-klinecharts@0.3.0`. Verify with `pnpm list react-klinecharts-ui react-klinecharts` — both show the new versions.
 
 - [ ] **Step 3: Migrate the type re-export in `src/datafeed/types.ts:2`**
 
-`react-klinecharts-ui@1.1.0` imports its types from `klinecharts` directly, and `react-klinecharts@0.3.0` re-exports them too — but for clarity and to match the library, source them from `klinecharts`. Change line 2:
+`react-klinecharts-ui@1.2.0` imports its types from `klinecharts` directly, and `react-klinecharts@0.3.0` re-exports them too — but for clarity and to match the library, source them from `klinecharts`. Change line 2:
 
 ```ts
 import type { KLineData, SymbolInfo } from "klinecharts";
@@ -108,7 +108,7 @@ Expected: all four pass (typecheck silent; lint 0 errors; 11 tests pass; build e
 
 ```bash
 git add package.json pnpm-lock.yaml src/datafeed/types.ts src/components/terminal/SymbolInfoPanel.tsx src/lib/order-line-overlay.ts src/components/terminal/ChartView.tsx
-git commit -m "chore: upgrade react-klinecharts-ui 0.6.0 → 1.1.0, react-klinecharts 0.2.1 → 0.3.0
+git commit -m "chore: upgrade react-klinecharts-ui 0.6.0 → 1.2.0, react-klinecharts 0.2.1 → 0.3.0
 
 Source Chart/KLineData/SymbolInfo/OverlayTemplate types from klinecharts
 directly (the library no longer re-exports them through react-klinecharts)."
@@ -369,7 +369,7 @@ The `makeSource` mock's `subscribe`/`unsubscribe` (lines 15–16) need to accept
 - [ ] **Step 7: Run the full gate**
 
 Run: `pnpm typecheck && pnpm lint && pnpm test && pnpm build`
-Expected: all pass. The 4 registry tests still pass; typecheck confirms every `unsubscribe` call site now passes a callback (the only call site is inside `react-klinecharts-ui`'s `createDataLoader`, which the library authors updated for 1.1.0 — verify by reading `/tmp/rkcui-11/package/dist/chunk-O7E57I66.js:84`: `unsubscribeBar` calls `datafeed.unsubscribe(params.symbol, ..., params.callback)`).
+Expected: all pass. The 4 registry tests still pass; typecheck confirms every `unsubscribe` call site now passes a callback (the only call site is inside `react-klinecharts-ui`'s `createDataLoader`, which the library authors updated for 1.2.0 — verify by reading `/tmp/rkcui-11/package/dist/chunk-O7E57I66.js:84`: `unsubscribeBar` calls `datafeed.unsubscribe(params.symbol, ..., params.callback)`).
 
 - [ ] **Step 8: Add a multi-subscriber teardown test**
 
@@ -409,7 +409,7 @@ when one subscriber leaves (fixes Binance/Bybit/OKX/synthetic data loss)."
 
 ### Task 4: Honour `from`/`to` in all four `getHistoryKLineData` (enables lazy history)
 
-**Context:** `react-klinecharts-ui@1.1.0`'s `createDataLoader` already issues `forward` requests (`to: oldestTimestamp - 1`) on left-scroll. But every source ignores `from` and uses a fixed `limit`, so older history never loads. Fixing the sources is the entire feature.
+**Context:** `react-klinecharts-ui@1.2.0`'s `createDataLoader` already issues `forward` requests (`to: oldestTimestamp - 1`) on left-scroll. But every source ignores `from` and uses a fixed `limit`, so older history never loads. Fixing the sources is the entire feature.
 
 **Files:**
 - Modify: `src/datafeed/binance.ts:135-161`
@@ -576,7 +576,7 @@ Expected: all pass.
 git add src/datafeed/binance.ts src/datafeed/bybit.ts src/datafeed/okx.ts src/datafeed/synthetic.ts
 git commit -m "feat(datafeed): honour from/to in getHistoryKLineData for lazy history
 
-react-klinecharts-ui 1.1.0's createDataLoader already issues forward
+react-klinecharts-ui 1.2.0's createDataLoader already issues forward
 requests on left-scroll; the sources now return the requested window
 instead of ignoring from and using a fixed limit."
 ```
@@ -755,13 +755,13 @@ git commit -m "fix(actions): per-dialog pendingPrice so alerts/order-lines don't
 
 ### Task 8: `AlertSound` — capture the new `onAlertTriggered` unsubscribe + reuse one AudioContext
 
-**Context:** `react-klinecharts-ui@1.1.0` changed `onAlertTriggered` to return an unsubscribe (`() => () => void`). `AlertSound` ignores it. Also, creating a fresh `AudioContext` per firing risks hitting the browser's ~6-context cap.
+**Context:** `react-klinecharts-ui@1.2.0` changed `onAlertTriggered` to return an unsubscribe (`() => () => void`). `AlertSound` ignores it. Also, creating a fresh `AudioContext` per firing risks hitting the browser's ~6-context cap.
 
 **Files:**
 - Modify: `src/components/terminal/AlertSound.tsx`
 
 **Interfaces:**
-- Consumes: `useAlerts().onAlertTriggered` (1.1.0 signature)
+- Consumes: `useAlerts().onAlertTriggered` (1.2.0 signature)
 - Produces: a leak-free `AlertSound` that closes its shared context on unmount.
 
 - [ ] **Step 1: Rewrite `AlertSound.tsx`**
@@ -1732,7 +1732,7 @@ git commit -m "feat(workspace): maximize/restore + add-chart command"
 
 ### Task 16: Object Tree panel (Drawings / Indicators / Order lines / Annotations / Alerts)
 
-**Context:** A TradingView-style object list with per-row visibility/lock/delete. `useDrawingTools` only exposes `removeAllDrawings` (no per-drawing API), so drawings are listed read-only from the chart's overlay list and removed via the klinecharts `Chart.removeOverlay(id)` instance method. Indicators use `useIndicators`; order lines `useOrderLines`; annotations `useAnnotations`; alerts `useAlerts` (read-only jump).
+**Context:** A TradingView-style object list with per-row visibility/lock/delete. As of `react-klinecharts-ui@1.2.0`, `useDrawingTools` now exposes a **reactive `overlays: DrawingOverlayInfo[]`** plus per-drawing `removeDrawing(id)` / `setDrawingVisible(id, visible)` / `setDrawingLocked(id, locked)` — use these directly (no manual polling of `chart.getOverlays()` and **no** `subscribeAction("onOverlayCreate")`, which does not exist in klinecharts v10). The `drawingLabel(name)` helper maps a tool name to its localeKey. Indicators use `useIndicators`; order lines `useOrderLines`; annotations `useAnnotations`; alerts `useAlerts` (delete only).
 
 **Files:**
 - Create: `src/components/terminal/ObjectTreePanel.tsx`
@@ -1740,7 +1740,7 @@ git commit -m "feat(workspace): maximize/restore + add-chart command"
 - Modify: `src/i18n/translations.ts`
 
 **Interfaces:**
-- Consumes: `useIndicators`, `useOrderLines`, `useAnnotations`, `useAlerts`, `useActiveCell` (for the chart instance).
+- Consumes: `useDrawingTools` (1.2.0: `overlays`/`removeDrawing`/`setDrawingVisible`/`setDrawingLocked`/`drawingLabel`), `useIndicators`, `useOrderLines`, `useAnnotations`, `useAlerts`. All resolve to the active cell because the panel is rendered inside the active provider (Task 14 moved dock panels to `useActiveCell`; keep `useDrawingTools` etc. as-is — they resolve via the active cell's context once the panel is within `ActiveCellProvider`).
 - Produces: `<ObjectTreePanel />` rendered in the right dock.
 
 - [ ] **Step 1: Add i18n keys**
@@ -1766,48 +1766,66 @@ In `src/i18n/translations.ts`:
 - [ ] **Step 2: Create `ObjectTreePanel.tsx`**
 
 ```tsx
-import { useEffect, useState } from "react";
-import { useIndicators, useOrderLines, useAnnotations, useAlerts } from "react-klinecharts-ui";
-import { useActiveCell } from "./ActiveCellContext";
+import { useState } from "react";
+import {
+  useIndicators,
+  useOrderLines,
+  useAnnotations,
+  useAlerts,
+  useDrawingTools,
+  drawingLabel,
+} from "react-klinecharts-ui";
 import { useT } from "@/i18n";
-import { Eye, EyeOff, Trash2, ChevronDown, ChevronRight } from "lucide-react";
+import { Eye, EyeOff, Lock, Unlock, Trash2, ChevronDown, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn, formatPrice } from "@/lib/utils";
 
-interface OverlayRow { id: string; name: string; paneId?: number; }
+interface Row {
+  id: string;
+  label: string;
+  visible?: boolean;
+  locked?: boolean;
+  onToggleVis?: () => void;
+  onToggleLock?: () => void;
+  onDel?: () => void;
+}
 
 export function ObjectTreePanel() {
   const t = useT();
-  const { state } = useActiveCell();
   const { mainIndicators, subIndicators, removeMainIndicator, removeSubIndicator, setIndicatorVisible, isIndicatorVisible } = useIndicators();
-  const { lines, removeOrderLine } = useOrderLinesLocal();
   const { annotations, removeAnnotation } = useAnnotations();
   const { alerts, removeAlert } = useAlerts();
-  const [drawings, setDrawings] = useState<OverlayRow[]>([]);
+  const { overlays, removeDrawing, setDrawingVisible, setDrawingLocked } = useDrawingTools();
 
-  const chart = state.chart;
-  useEffect(() => {
-    if (!chart) return;
-    const read = () => {
-      const all = chart.getOverlays?.() ?? [];
-      setDrawings(all.map((o: { id?: string; name?: string; paneId?: number }) => ({ id: o.id ?? "?", name: o.name ?? "drawing", paneId: o.paneId })));
-    };
-    read();
-    const unsub = chart.subscribeAction?.("onOverlayCreate", read);
-    const unsub2 = chart.subscribeAction?.("onOverlayRemove", read);
-    return () => { unsub?.(); unsub2?.(); };
-  }, [chart]);
+  const drawingRows: Row[] = overlays.map((o) => ({
+    id: o.id,
+    label: t(drawingLabel(o.name)),
+    visible: o.visible,
+    locked: o.locked,
+    onToggleVis: () => setDrawingVisible(o.id, !o.visible),
+    onToggleLock: () => setDrawingLocked(o.id, !o.locked),
+    onDel: () => removeDrawing(o.id),
+  }));
+  const indicatorRows: Row[] = [
+    ...mainIndicators.map((i) => ({ id: i.name, label: `${i.name} (${t("ot.main")})`, visible: isIndicatorVisible(i.name, true), onToggleVis: () => setIndicatorVisible(i.name, true, !isIndicatorVisible(i.name, true)), onDel: () => removeMainIndicator(i.name) })),
+    ...subIndicators.map((i) => ({ id: i.name, label: `${i.name} (${t("ot.sub")})`, visible: isIndicatorVisible(i.name, false), onToggleVis: () => setIndicatorVisible(i.name, false, !isIndicatorVisible(i.name, false)), onDel: () => removeSubIndicator(i.name) })),
+  ];
+  const noteRows: Row[] = annotations.map((a) => ({ id: a.id, label: a.text.slice(0, 24) || t("ot.notes"), onDel: () => removeAnnotation(a.id) }));
+  const alertRows: Row[] = alerts.map((a) => ({ id: a.id, label: `${formatPrice(a.price)} ${a.message ?? ""}`.trim(), onDel: () => removeAlert(a.id) }));
 
-  const groups: { key: string; label: string; rows: { id: string; label: string; onToggle?: () => void; onDel?: () => void; visible?: boolean }[] }[] = [
-    { key: "drawings", label: t("ot.drawings"), rows: drawings.map((d) => ({ id: d.id, label: d.name, onDel: () => chart?.removeOverlay?.({ id: d.id }) })) },
-    { key: "indicators", label: t("ot.indicators"), rows: [
-      ...mainIndicators.map((i) => ({ id: i.name, label: `${i.name} (${t("ot.main")})`, visible: isIndicatorVisible(i.name, true), onToggle: () => setIndicatorVisible(i.name, true, !isIndicatorVisible(i.name, true)), onDel: () => removeMainIndicator(i.name) })),
-      ...subIndicators.map((i) => ({ id: i.name, label: `${i.name} (${t("ot.sub")})`, visible: isIndicatorVisible(i.name, false), onToggle: () => setIndicatorVisible(i.name, false, !isIndicatorVisible(i.name, false)), onDel: () => removeSubIndicator(i.name) })),
-    ] },
-    { key: "orderLines", label: t("ot.orderLines"), rows: lines.map((l) => ({ id: l.id, label: `${l.side} @ ${formatPrice(l.price)}`, onDel: () => removeOrderLine(l.id) })) },
-    { key: "notes", label: t("ot.notes"), rows: annotations.map((a) => ({ id: a.id, label: a.text.slice(0, 24) || t("ot.notes"), onDel: () => removeAnnotation(a.id) })) },
-    { key: "alerts", label: t("ot.alerts"), rows: alerts.map((a) => ({ id: a.id, label: `${formatPrice(a.price)} ${a.message ?? ""}`.trim(), onDel: () => removeAlert(a.id) })) },
+  // Order lines: useOrderLines has create/remove but no list. Read them from
+  // the chart overlays of name "orderLine" once on mount + on a 700ms poll
+  // (order-line removal is chart-side; cheap fallback). This is the only
+  // remaining manual read because useOrderLines has no reactive list.
+  const orderRows: Row[] = useOrderLineRows();
+
+  const groups: { key: string; label: string; rows: Row[] }[] = [
+    { key: "drawings", label: t("ot.drawings"), rows: drawingRows },
+    { key: "indicators", label: t("ot.indicators"), rows: indicatorRows },
+    { key: "orderLines", label: t("ot.orderLines"), rows: orderRows },
+    { key: "notes", label: t("ot.notes"), rows: noteRows },
+    { key: "alerts", label: t("ot.alerts"), rows: alertRows },
   ];
   const nonEmpty = groups.filter((g) => g.rows.length > 0);
 
@@ -1831,7 +1849,7 @@ export function ObjectTreePanel() {
   );
 }
 
-function Group({ label, rows, t }: { label: string; rows: { id: string; label: string; onToggle?: () => void; onDel?: () => void; visible?: boolean }[]; t: (k: string) => string }) {
+function Group({ label, rows, t }: { label: string; rows: Row[]; t: (k: string) => string }) {
   const [open, setOpen] = useState(true);
   return (
     <div className="mb-1">
@@ -1843,8 +1861,13 @@ function Group({ label, rows, t }: { label: string; rows: { id: string; label: s
       {open && rows.map((r) => (
         <div key={r.id} className="flex items-center gap-1 rounded px-2 py-1 pl-6 text-sm hover:bg-accent/50">
           <span className={cn("min-w-0 flex-1 truncate", r.visible === false && "text-muted-foreground line-through")}>{r.label}</span>
-          {r.onToggle && (
-            <Button variant="ghost" size="icon-sm" className="h-6" onClick={r.onToggle} title={t("ot.toggleVis")}>
+          {r.onToggleLock && (
+            <Button variant="ghost" size="icon-sm" className="h-6" onClick={r.onToggleLock} title={t("ot.lock")}>
+              {r.locked ? <Lock className="size-3.5" /> : <Unlock className="size-3.5" />}
+            </Button>
+          )}
+          {r.onToggleVis && (
+            <Button variant="ghost" size="icon-sm" className="h-6" onClick={r.onToggleVis} title={t("ot.toggleVis")}>
               {r.visible === false ? <EyeOff className="size-3.5" /> : <Eye className="size-3.5" />}
             </Button>
           )}
@@ -1859,28 +1882,37 @@ function Group({ label, rows, t }: { label: string; rows: { id: string; label: s
   );
 }
 
-/** `useOrderLines` exposes a create/remove API but no list; the dialog tracks
- * lines locally. Mirror that minimal state here by reading the chart overlays
- * of name "orderLine" so the tree reflects what's on the chart. */
-function useOrderLinesLocal() {
+/** Order lines have no reactive list in useOrderLines; poll the chart overlays.
+ *  Kept local to this panel — drawings/indicators/annotations/alerts are all
+ *  reactive via their hooks (drawings since react-klinecharts-ui 1.2.0). */
+function useOrderLineRows(): Row[] {
   const { state } = useActiveCell();
   const { removeOrderLine } = useOrderLines();
-  const [lines, setLines] = useState<{ id: string; price: number; side: "long" | "short" }[]>([]);
+  const [lines, setLines] = useState<{ id: string; label: string }[]>([]);
   useEffect(() => {
     const chart = state.chart;
     if (!chart) return;
     const read = () => {
       const all = chart.getOverlays?.() ?? [];
-      setLines(all.filter((o: { name?: string }) => o.name === "orderLine").map((o: { id?: string; points?: { value?: number }[]; extendData?: { side?: string } }) => ({ id: o.id ?? "?", price: o.points?.[0]?.value ?? 0, side: (o.extendData?.side === "short" ? "short" : "long") as "long" | "short" })));
+      setLines(
+        all
+          .filter((o: { name?: string }) => o.name === "orderLine")
+          .map((o: { id?: string; points?: { value?: number }[]; extendData?: { side?: string } }) => ({
+            id: o.id ?? "?",
+            label: `${o.extendData?.side === "short" ? t("common.short") : t("common.long")} @ ${formatPrice(o.points?.[0]?.value ?? 0)}`,
+          })),
+      );
     };
     read();
-    const a = chart.subscribeAction?.("onOverlayCreate", read);
-    const b = chart.subscribeAction?.("onOverlayRemove", read);
-    return () => { a?.(); b?.(); };
+    const id = setInterval(read, 700);
+    return () => clearInterval(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.chart]);
-  return { lines, removeOrderLine };
+  return lines.map((l) => ({ ...l, onDel: () => removeOrderLine(l.id) }));
 }
 ```
+
+Note the imports now include `useDrawingTools`, `drawingLabel`, `useEffect` (add to the React import), and `useActiveCell` from `./ActiveCellContext` (Task 12). Drawings no longer poll and no longer call the non-existent `subscribeAction("onOverlayCreate")` — `overlays` from the hook is already reactive.
 
 - [ ] **Step 3: Register the panel in `RightDock`**
 
@@ -1917,7 +1949,7 @@ git commit -m "feat(object-tree): panel listing drawings/indicators/order-lines/
 
 ### Task 17: Indicator-based alerts in `AlertsDialog`
 
-**Context:** `react-klinecharts-ui@1.1.0` adds `AlertTarget` and a `target` param to `addAlert`. Extend `AlertsDialog` with a Price/Indicator source toggle.
+**Context:** `react-klinecharts-ui@1.2.0` adds `AlertTarget` and a `target` param to `addAlert`. Extend `AlertsDialog` with a Price/Indicator source toggle.
 
 **Files:**
 - Modify: `src/components/terminal/AlertsDialog.tsx`
@@ -2206,7 +2238,7 @@ git commit -m "feat(axes): Settings Axes tab via useChartAxes (reverse/inside Y)
 
 ## Phase 9 — Docs
 
-### Task 21: Update README to reflect 1.1.0 features and accurate hook coverage
+### Task 21: Update README to reflect 1.2.0 features and accurate hook coverage
 
 **Files:**
 - Modify: `README.md`
@@ -2228,7 +2260,7 @@ Expected: all pass.
 
 ```bash
 git add README.md docs/screenshot.png
-git commit -m "docs: README + screenshot for react-klinecharts-ui 1.1.0 feature set"
+git commit -m "docs: README + screenshot for react-klinecharts-ui 1.2.0 feature set"
 ```
 
 ---
