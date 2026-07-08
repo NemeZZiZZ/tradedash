@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useKlinechartsUI, TA } from "react-klinecharts-ui";
 import { useT } from "@/i18n";
 import type { TerminalPeriod } from "react-klinecharts-ui";
-import type { KLineData, SymbolInfo } from "react-klinecharts";
+import type { KLineData, SymbolInfo } from "klinecharts";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useLivePrice } from "@/hooks/use-live-price";
 import { cn, formatPrice, formatPercent, formatCompact } from "@/lib/utils";

@@ -1,5 +1,5 @@
 import { orderLine } from "react-klinecharts-ui";
-import type { OverlayTemplate } from "react-klinecharts";
+import type { OverlayTemplate } from "klinecharts";
 
 /**
  * The library's `orderLine` overlay with an up/down resize cursor on hover.
