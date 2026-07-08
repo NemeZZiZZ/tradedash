@@ -103,7 +103,7 @@ export class BybitDataSource implements DataSource {
   async getHistoryKLineData(
     symbol: SymbolInfo,
     period: TerminalPeriod,
-    _from: number,
+    from: number,
     to: number,
   ): Promise<KLineData[]> {
     const url = new URL(`${REST}/market/kline`);
@@ -111,6 +111,7 @@ export class BybitDataSource implements DataSource {
     url.searchParams.set("symbol", symbol.ticker);
     url.searchParams.set("interval", periodToInterval(period));
     url.searchParams.set("end", String(to));
+    if (from > 0) url.searchParams.set("start", String(from));
     url.searchParams.set("limit", "1000");
 
     const res = await fetch(url.toString());

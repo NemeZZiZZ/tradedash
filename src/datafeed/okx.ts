@@ -104,13 +104,14 @@ export class OkxDataSource implements DataSource {
   async getHistoryKLineData(
     symbol: SymbolInfo,
     period: TerminalPeriod,
-    _from: number,
+    from: number,
     to: number,
   ): Promise<KLineData[]> {
     const url = new URL(`${REST}/market/candles`);
     url.searchParams.set("instId", symbol.ticker);
     url.searchParams.set("bar", periodToBar(period));
     url.searchParams.set("after", String(to));
+    if (from > 0) url.searchParams.set("before", String(from));
     url.searchParams.set("limit", "300");
 
     const res = await fetch(url.toString());

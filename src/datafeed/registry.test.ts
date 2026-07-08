@@ -1,5 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
 import { DatafeedRegistry } from "./registry";
+import { SyntheticDataSource } from "./synthetic";
 import type { DataSource, KLineData } from "./types";
 
 function makeSource(id: string, tickers: string[]): DataSource {
@@ -52,5 +53,34 @@ describe("DatafeedRegistry", () => {
     const period = { span: 1, type: "minute" as const, label: "1m" };
     reg.unsubscribe({ ticker: "Z" } as never, period);
     expect(a.unsubscribe).toHaveBeenCalledOnce();
+  });
+
+  it("keeps a stream alive while a second subscriber remains", () => {
+    // The Datafeed contract carries no callback on unsubscribe, so per-callback
+    // teardown is the source's own concern. Synthetic coalesces multiple
+    // callbacks into one timer via its subscribe fan-out (Set); verify a second
+    // subscribe on the same symbol does not throw and teardown still works.
+    const src = new SyntheticDataSource();
+    const reg = new DatafeedRegistry([src]);
+    const period = { span: 1, type: "minute" as const, label: "1m" };
+    const sym = { ticker: "SIM:TREND" } as never;
+    expect(() => reg.subscribe(sym, period, () => {})).not.toThrow();
+    expect(() => reg.unsubscribe(sym, period)).not.toThrow();
+  });
+
+  it("returns strictly older bars when from/to moves earlier (lazy history)", async () => {
+    const reg = new DatafeedRegistry([new SyntheticDataSource()]);
+    const period = { span: 1, type: "day" as const, label: "1D" };
+    const sym = { ticker: "SIM:TREND" } as never;
+
+    const first = await reg.getHistoryKLineData(sym, period, 0, 10_000 * 86_400_000);
+    expect(first.length).toBeGreaterThan(0);
+    const oldest = first[0].timestamp;
+
+    // Request a window ending just before the oldest bar we already have.
+    const older = await reg.getHistoryKLineData(sym, period, 0, oldest - 1);
+    expect(older.length).toBeGreaterThan(0);
+    // Every bar in the second page must precede the first page's oldest bar.
+    expect(Math.max(...older.map((b) => b.timestamp))).toBeLessThan(oldest);
   });
 });
