@@ -58,6 +58,25 @@ export const messages: Record<string, Entry> = {
   "dock.info": { en: "Symbol info", ru: "Об инструменте", es: "Información del símbolo", fr: "Infos symbole", de: "Symbolinfo", zh: "品种信息", ja: "銘柄情報" },
   "dock.orderbook": { en: "Order book", ru: "Стакан", es: "Libro de órdenes", fr: "Carnet d'ordres", de: "Orderbuch", zh: "订单簿", ja: "板情報" },
 
+  // ── Workspace / multi-chart ───────────────────────────────────────────
+  "ws.layout": { en: "Layout" },
+  "ws.single": { en: "Single chart" },
+  "ws.cols2": { en: "2 columns" },
+  "ws.grid4": { en: "2×2 grid" },
+  "ws.rows2": { en: "2 rows" },
+  "ws.sync": { en: "Sync" },
+  "ws.sync.crosshair": { en: "Crosshair" },
+  "ws.sync.scroll": { en: "Scroll" },
+  "ws.sync.zoom": { en: "Zoom" },
+  "ws.sync.symbol": { en: "Symbol" },
+  "ws.sync.period": { en: "Period" },
+  "ws.addCell": { en: "Add chart" },
+  "ws.removeCell": { en: "Remove chart" },
+  "ws.maximize": { en: "Maximize" },
+  "ws.restore": { en: "Restore" },
+  "ws.depth": { en: "Depth" },
+  "ws.depthUnsupported": { en: "No depth feed for this symbol" },
+
   // ── Chart context menu ─────────────────────────────────────────────────
   "menu.addAlert": { en: "Add alert", ru: "Добавить алерт", es: "Añadir alerta", fr: "Ajouter une alerte", de: "Alarm hinzufügen", zh: "添加提醒", ja: "アラートを追加" },
   "menu.orderLine": { en: "Order line", ru: "Ордерная линия", es: "Línea de orden", fr: "Ligne d'ordre", de: "Orderlinie", zh: "订单线", ja: "注文ライン" },

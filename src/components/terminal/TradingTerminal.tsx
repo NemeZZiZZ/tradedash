@@ -1,13 +1,12 @@
 import { useEffect } from "react";
 import {
   KlinechartsUIProvider,
-  useFullscreen,
   useKlinechartsUI,
   useKlinechartsUITheme,
   useKlinechartsUILoading,
+  useFullscreen,
   DEFAULT_PERIODS,
 } from "react-klinecharts-ui";
-import { orderLineOverlay } from "@/lib/order-line-overlay";
 import type { PartialSymbolInfo, TerminalPeriod } from "react-klinecharts-ui";
 import { PanelLeft } from "lucide-react";
 import { datafeed, defaultSymbol } from "@/datafeed";
@@ -23,6 +22,7 @@ import {
   savePersisted,
   usePersistentState,
 } from "@/hooks/use-persistent-state";
+import { orderLineOverlay } from "@/lib/order-line-overlay";
 import { Toolbar } from "./Toolbar";
 import { DrawingSidebar } from "./DrawingSidebar";
 import { ChartView } from "./ChartView";
@@ -39,10 +39,7 @@ function TerminalLayout() {
   const { dispatch } = useKlinechartsUI();
   const { theme } = useKlinechartsUITheme();
   const { isLoading } = useKlinechartsUILoading();
-  const [showDrawing, setShowDrawing] = usePersistentState(
-    "panel.drawing",
-    true,
-  );
+  const [showDrawing, setShowDrawing] = usePersistentState("panel.drawing", true);
 
   useSyncTheme(theme);
 
@@ -57,7 +54,7 @@ function TerminalLayout() {
       className="flex h-svh flex-col bg-background text-foreground"
     >
       <TerminalActionsProvider>
-        <header className="flex gap-0.5 h-10 shrink-0 items-center border-b border-border px-1">
+        <header className="flex h-10 shrink-0 items-center gap-0.5 border-b border-border px-1">
           <Tooltip content={t("toolbar.drawingTools")}>
             <Button
               variant={showDrawing ? "secondary" : "ghost"}
@@ -100,10 +97,7 @@ function initialPeriod(): TerminalPeriod {
 
 export function TradingTerminal({ className }: { className?: string }) {
   const { lang } = useI18n();
-  const initialSymbol = loadPersisted<PartialSymbolInfo>(
-    "symbol",
-    defaultSymbol,
-  );
+  const initialSymbol = loadPersisted<PartialSymbolInfo>("symbol", defaultSymbol);
   const initialTheme = loadPersisted<string>("theme", "dark");
 
   return (
@@ -116,6 +110,7 @@ export function TradingTerminal({ className }: { className?: string }) {
         defaultLocale={chartLocale(lang)}
         defaultMainIndicators={["MA"]}
         defaultSubIndicators={["VOL"]}
+        storage={{}}
         overlays={[orderLineOverlay]}
         onSymbolChange={(s) => savePersisted("symbol", s)}
         onPeriodChange={(p) => savePersisted("period", p.label)}

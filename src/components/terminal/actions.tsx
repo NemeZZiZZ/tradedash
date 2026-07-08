@@ -1,4 +1,11 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import {
   useScreenshot,
   useKlinechartsUITheme,
@@ -76,6 +83,7 @@ const EMPTY: Record<ModalKey, boolean> = {
 export function TerminalActionsProvider({ children }: { children: React.ReactNode }) {
   const t = useT();
   const [state, setState] = useState<Record<ModalKey, boolean>>(EMPTY);
+  const [pendingPrice, setPendingPrice] = useState<Partial<Record<ModalKey, number>>>({});
   const { capture } = useScreenshot();
   const { toggleTheme } = useKlinechartsUITheme();
   const { toggle: toggleFullscreen } = useFullscreen();
@@ -83,17 +91,13 @@ export function TerminalActionsProvider({ children }: { children: React.ReactNod
   const { startReplay } = useReplay();
   const { startMeasure } = useMeasure();
 
-  const [pendingPrice, setPendingPrice] = useState<Partial<Record<ModalKey, number>>>({});
-
   const set = useCallback(
     (key: ModalKey, value: boolean) => setState((s) => ({ ...s, [key]: value })),
     [],
   );
   const open = useCallback(
     (key: ModalKey, opts?: OpenOptions) => {
-      if (opts?.price != null) {
-        setPendingPrice((p) => ({ ...p, [key]: opts.price }));
-      }
+      if (opts?.price != null) setPendingPrice((p) => ({ ...p, [key]: opts.price }));
       set(key, true);
     },
     [set],
