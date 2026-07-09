@@ -1,5 +1,5 @@
 import { Fragment, useRef } from "react";
-import { List, BookOpen, Info, type LucideIcon } from "lucide-react";
+import { List, BookOpen, Info, Layers, type LucideIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tooltip } from "@/components/ui/tooltip";
 import { ResizeHandle } from "@/components/ui/resize-handle";
@@ -9,6 +9,7 @@ import { useI18n, isRtl } from "@/i18n";
 import { WatchlistPanel } from "./WatchlistPanel";
 import { OrderBookPanel } from "./OrderBookPanel";
 import { SymbolInfoPanel } from "./SymbolInfoPanel";
+import { ObjectTreePanel } from "./ObjectTreePanel";
 
 const MIN_WIDTH = 220;
 const MAX_WIDTH = 600;
@@ -43,6 +44,12 @@ const SECTIONS: SectionDef[] = [
     icon: BookOpen,
     render: () => <OrderBookPanel />,
   },
+  {
+    id: "tree",
+    label: "ot.title",
+    icon: Layers,
+    render: () => <ObjectTreePanel />,
+  },
 ];
 
 /**
@@ -60,6 +67,7 @@ export function RightDock() {
       watchlist: true,
       info: false,
       orderbook: false,
+      tree: false,
     },
   );
   const [width, setWidth] = usePersistentState("dock.width", 300);

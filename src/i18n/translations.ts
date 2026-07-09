@@ -77,6 +77,20 @@ export const messages: Record<string, Entry> = {
   "ws.depth": { en: "Depth" },
   "ws.depthUnsupported": { en: "No depth feed for this symbol" },
 
+  // ── Object tree ───────────────────────────────────────────────────────
+  "ot.title": { en: "Object tree" },
+  "ot.drawings": { en: "Drawings" },
+  "ot.indicators": { en: "Indicators" },
+  "ot.orderLines": { en: "Order lines" },
+  "ot.notes": { en: "Notes" },
+  "ot.alerts": { en: "Alerts" },
+  "ot.empty": { en: "No objects yet" },
+  "ot.toggleVis": { en: "Toggle visibility" },
+  "ot.lock": { en: "Lock" },
+  "ot.delete": { en: "Delete" },
+  "ot.main": { en: "Main" },
+  "ot.sub": { en: "Sub" },
+
   // ── Chart context menu ─────────────────────────────────────────────────
   "menu.addAlert": { en: "Add alert", ru: "Добавить алерт", es: "Añadir alerta", fr: "Ajouter une alerte", de: "Alarm hinzufügen", zh: "添加提醒", ja: "アラートを追加" },
   "menu.orderLine": { en: "Order line", ru: "Ордерная линия", es: "Línea de orden", fr: "Ligne d'ordre", de: "Orderlinie", zh: "订单线", ja: "注文ライン" },
