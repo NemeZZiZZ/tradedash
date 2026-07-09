@@ -26,7 +26,7 @@ export function useLivePrice(): {
       const list = chart?.getDataList?.();
       if (!list || list.length === 0) return;
       const last = list[list.length - 1].close;
-      const open = list[list.length - 1].open;
+      const open = list[0].open;
       const change = last - open;
       setVal({ last, change, changePercent: open ? (change / open) * 100 : null });
     };

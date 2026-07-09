@@ -135,7 +135,7 @@ export class BinanceDataSource implements DataSource {
   async getHistoryKLineData(
     symbol: SymbolInfo,
     period: TerminalPeriod,
-    _from: number,
+    from: number,
     to: number,
   ): Promise<KLineData[]> {
     const interval = periodToInterval(period);
@@ -143,6 +143,7 @@ export class BinanceDataSource implements DataSource {
     url.searchParams.set("symbol", symbol.ticker);
     url.searchParams.set("interval", interval);
     url.searchParams.set("endTime", String(to));
+    if (from > 0) url.searchParams.set("startTime", String(from));
     url.searchParams.set("limit", "1000");
 
     const res = await fetch(url.toString());
@@ -177,8 +178,16 @@ export class BinanceDataSource implements DataSource {
     const callbacks = new Set<(data: KLineData) => void>([callback]);
     const ws = new WebSocket(`${WS}/${stream}`);
     ws.onmessage = (event) => {
-      const msg = JSON.parse(event.data);
-      if (msg.e !== "kline") return;
+      let msg: {
+        e?: string;
+        k?: { t: number; o: string; h: string; l: string; c: string; v: string; q: string };
+      };
+      try {
+        msg = JSON.parse(event.data);
+      } catch {
+        return; // non-JSON keep-alive frame
+      }
+      if (msg.e !== "kline" || !msg.k) return;
       const k = msg.k;
       const bar: KLineData = {
         timestamp: k.t,
@@ -201,8 +210,9 @@ export class BinanceDataSource implements DataSource {
     const stream = `${symbol.ticker.toLowerCase()}@kline_${interval}`;
     const entry = this.streams.get(stream);
     if (!entry) return;
-    // The Datafeed contract gives no callback to unsubscribe a single consumer,
-    // so tearing down a stream closes it for all of its subscribers.
+    // Tear down the stream. The Datafeed contract carries no callback, so this
+    // closes it for all subscribers; today only the chart subscribes (the
+    // watchlist reads via chart.getDataList()), so this is safe in practice.
     entry.ws.onmessage = null;
     entry.ws.close();
     this.streams.delete(stream);

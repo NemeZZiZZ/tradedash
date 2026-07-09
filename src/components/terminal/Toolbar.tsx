@@ -20,6 +20,7 @@ import {
   BarChart3,
   Globe,
   Search,
+  BookOpen,
   ChevronDown,
   Undo2,
   Redo2,
@@ -38,6 +39,10 @@ import {
   Command as CommandIcon,
   MoreHorizontal,
   CircleDollarSign,
+  LayoutGrid,
+  Square,
+  Columns2,
+  Rows2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -53,11 +58,21 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useT } from "@/i18n";
 import { useTerminalActions } from "./actions";
+import { LAYOUTS, type GridLayoutId } from "./workspace";
 import type { RoutedSymbolInfo } from "@/datafeed";
 
-export function Toolbar() {
+export function Toolbar({
+  layoutId,
+  onLayoutChange,
+}: {
+  layoutId: GridLayoutId;
+  onLayoutChange: (id: GridLayoutId) => void;
+}) {
   const t = useT();
   const { state } = useKlinechartsUI();
+  const { open, screenshot, tradeMode, toggleTrade, depthOn, toggleDepth } = useTerminalActions();
+  const depthSupported =
+    (state.datafeed as unknown as { supportsDepth?: (s: unknown) => boolean })?.supportsDepth?.(state.symbol ?? {}) ?? false;
   const { periods, activePeriod, setPeriod } = usePeriods();
   const { theme, toggleTheme } = useKlinechartsUITheme();
   const { candleType, candleTypes, setCandleType } = useKlinechartsUISettings();
@@ -67,7 +82,6 @@ export function Toolbar() {
   const { startReplay } = useReplay();
   const { startMeasure } = useMeasure();
   const { exportAll } = useDataExport();
-  const { open, screenshot, tradeMode, toggleTrade } = useTerminalActions();
 
   const source =
     (state.symbol as RoutedSymbolInfo | null)?.source ??
@@ -78,6 +92,33 @@ export function Toolbar() {
 
   return (
     <>
+      {/* Layout selector (1 / 2 cols / 2 rows / 2×2). */}
+      <DropdownMenu>
+        <Tooltip content={t("ws.layout")}>
+          <DropdownMenuTrigger
+            render={
+              <Button variant="ghost" size="icon-sm">
+                <LayoutGrid className="size-4" />
+              </Button>
+            }
+          />
+        </Tooltip>
+        <DropdownMenuContent align="start">
+          <DropdownMenuLabel>{t("ws.layout")}</DropdownMenuLabel>
+          {LAYOUTS.map((l) => {
+            const Icon = l.id === "single" ? Square : l.id === "cols2" ? Columns2 : l.id === "rows2" ? Rows2 : LayoutGrid;
+            return (
+              <DropdownMenuItem key={l.id} onClick={() => onLayoutChange(l.id)}>
+                {layoutId === l.id ? <Check className="size-3.5" /> : <Icon className="size-3.5" />}
+                {t(`ws.${l.id}`)}
+              </DropdownMenuItem>
+            );
+          })}
+        </DropdownMenuContent>
+      </DropdownMenu>
+
+      <Separator orientation="vertical" className="mx-1 h-5" />
+
       <Button
         variant="ghost"
         size="sm"
@@ -162,6 +203,18 @@ export function Toolbar() {
         <Button variant="ghost" size="sm" onClick={() => open("indicators")}>
           <BarChart3 className="size-4" />
           <span className="hidden lg:inline">{t("toolbar.indicators")}</span>
+        </Button>
+      </Tooltip>
+
+      {/* Depth-of-market overlay toggle */}
+      <Tooltip content={depthSupported ? t("ws.depth") : t("ws.depthUnsupported")}>
+        <Button
+          variant={depthOn && depthSupported ? "secondary" : "ghost"}
+          size="icon-sm"
+          disabled={!depthSupported}
+          onClick={toggleDepth}
+        >
+          <BookOpen className="size-4" />
         </Button>
       </Tooltip>
 

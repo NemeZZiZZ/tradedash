@@ -90,7 +90,7 @@ export function DrawingSidebar() {
         const label = CATEGORY_KEYS[category.key]
           ? t(CATEGORY_KEYS[category.key])
           : category.key;
-        const hasActive = category.tools.some((t) => t.name === activeTool);
+        const hasActive = category.tools.some((tool) => tool.name === activeTool);
 
         if (category.tools.length === 1) {
           const tool = category.tools[0];

@@ -56,18 +56,19 @@ export class SyntheticDataSource implements DataSource {
   async getHistoryKLineData(
     symbol: SymbolInfo,
     period: TerminalPeriod,
-    _from: number,
+    from: number,
     to: number,
   ): Promise<KLineData[]> {
     const step = periodMs(period);
     const { base, drift, vol } = seedFor(symbol.ticker);
-    const count = 800;
+    const startTs = from > 0 ? from : to - 800 * step;
+    const count = Math.min(800, Math.max(0, Math.ceil((to - startTs) / step)));
     const out: KLineData[] = [];
     let price = base;
 
-    const startTs = to - count * step;
     for (let i = 0; i < count; i++) {
       const timestamp = startTs + i * step;
+      if (timestamp > to) break;
       const open = price;
       const shock = (Math.random() - 0.5) * 2 * vol;
       const close = Math.max(0.01, open * (1 + drift + shock));
@@ -77,7 +78,7 @@ export class SyntheticDataSource implements DataSource {
       out.push({ timestamp, open, high, low, close, volume, turnover: volume * close });
       price = close;
     }
-    this.last.set(symbol.ticker, out[out.length - 1]);
+    if (out.length > 0) this.last.set(symbol.ticker, out[out.length - 1]);
     return out;
   }
 

@@ -1,4 +1,11 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import {
   useScreenshot,
   useKlinechartsUITheme,
@@ -48,6 +55,10 @@ interface TerminalActions {
   screenshot: () => void;
   tradeMode: boolean;
   toggleTrade: () => void;
+  /** Depth-of-market overlay on the chart (shared so Toolbar toggle and the
+   *  ChartView subscription effect stay in sync). */
+  depthOn: boolean;
+  toggleDepth: () => void;
 }
 
 const Ctx = createContext<TerminalActions | null>(null);
@@ -76,6 +87,7 @@ const EMPTY: Record<ModalKey, boolean> = {
 export function TerminalActionsProvider({ children }: { children: React.ReactNode }) {
   const t = useT();
   const [state, setState] = useState<Record<ModalKey, boolean>>(EMPTY);
+  const [pendingPrice, setPendingPrice] = useState<Partial<Record<ModalKey, number>>>({});
   const { capture } = useScreenshot();
   const { toggleTheme } = useKlinechartsUITheme();
   const { toggle: toggleFullscreen } = useFullscreen();
@@ -83,15 +95,13 @@ export function TerminalActionsProvider({ children }: { children: React.ReactNod
   const { startReplay } = useReplay();
   const { startMeasure } = useMeasure();
 
-  const [pendingPrice, setPendingPrice] = useState<number | null>(null);
-
   const set = useCallback(
     (key: ModalKey, value: boolean) => setState((s) => ({ ...s, [key]: value })),
     [],
   );
   const open = useCallback(
     (key: ModalKey, opts?: OpenOptions) => {
-      setPendingPrice(opts?.price ?? null);
+      if (opts?.price != null) setPendingPrice((p) => ({ ...p, [key]: opts.price }));
       set(key, true);
     },
     [set],
@@ -104,10 +114,12 @@ export function TerminalActionsProvider({ children }: { children: React.ReactNod
 
   const [tradeMode, setTradeMode] = usePersistentState("trade.mode", false);
   const toggleTrade = useCallback(() => setTradeMode((v) => !v), [setTradeMode]);
+  const [depthOn, setDepthOn] = usePersistentState("chart.depth", false);
+  const toggleDepth = useCallback(() => setDepthOn((v) => !v), [setDepthOn]);
 
   const actions = useMemo<TerminalActions>(
-    () => ({ open, screenshot, tradeMode, toggleTrade }),
-    [open, screenshot, tradeMode, toggleTrade],
+    () => ({ open, screenshot, tradeMode, toggleTrade, depthOn, toggleDepth }),
+    [open, screenshot, tradeMode, toggleTrade, depthOn, toggleDepth],
   );
 
   const commands = useMemo<Command[]>(
@@ -156,15 +168,21 @@ export function TerminalActionsProvider({ children }: { children: React.ReactNod
       <ScreenshotDialog open={state.screenshot} onOpenChange={(o) => set("screenshot", o)} />
       <OrderLinesDialog
         open={state.orderLines}
-        onOpenChange={(o) => set("orderLines", o)}
-        initialPrice={pendingPrice}
+        onOpenChange={(o) => {
+          set("orderLines", o);
+          if (!o) setPendingPrice((p) => ({ ...p, orderLines: undefined }));
+        }}
+        initialPrice={pendingPrice.orderLines ?? null}
       />
       <LayoutManagerDialog open={state.layouts} onOpenChange={(o) => set("layouts", o)} />
       <CompareDialog open={state.compare} onOpenChange={(o) => set("compare", o)} />
       <AlertsDialog
         open={state.alerts}
-        onOpenChange={(o) => set("alerts", o)}
-        initialPrice={pendingPrice}
+        onOpenChange={(o) => {
+          set("alerts", o);
+          if (!o) setPendingPrice((p) => ({ ...p, alerts: undefined }));
+        }}
+        initialPrice={pendingPrice.alerts ?? null}
       />
       <AnnotationsDialog open={state.annotations} onOpenChange={(o) => set("annotations", o)} />
       <ScriptEditorDialog open={state.script} onOpenChange={(o) => set("script", o)} />

@@ -1,4 +1,6 @@
-import { useKlinechartsUISettings } from "react-klinecharts-ui";
+import { useEffect } from "react";
+import { useKlinechartsUISettings, useHotkeys, useChartAxes } from "react-klinecharts-ui";
+import { usePersistentState } from "@/hooks/use-persistent-state";
 import {
   Dialog,
   DialogContent,
@@ -54,7 +56,17 @@ function NativeSelect<T extends string>({
 
 export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
   const s = useKlinechartsUISettings();
+  const { supportedHotkeys, getHotkey, getHotkeysConfig, setHotkeysEnabled } = useHotkeys();
+  const { overrideYAxis } = useChartAxes();
   const { t, lang, setLang } = useI18n();
+  const hotkeysConfig = getHotkeysConfig();
+  const [reverseY, setReverseY] = usePersistentState("axes.reverseY", false);
+  const [yInside, setYInside] = usePersistentState("axes.yInside", false);
+
+  // Apply the persisted axis overrides whenever they change.
+  useEffect(() => {
+    overrideYAxis({ reverse: reverseY, inside: yInside });
+  }, [reverseY, yInside, overrideYAxis]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -171,6 +183,48 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
               options={s.tooltipShowRules.map((c) => ({ key: c.key, label: t(`trule.${c.key}`) }))}
               onChange={s.setTooltipShowRule}
             />
+          </Row>
+
+          {/* Hotkeys */}
+          <Separator className="my-2" />
+          <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            {t("settings.hotkeys")}
+          </span>
+          <Row label={t("settings.hotkeysEnabled")}>
+            <Switch
+              checked={hotkeysConfig?.enabled !== false}
+              onCheckedChange={(on) => setHotkeysEnabled(on)}
+            />
+          </Row>
+          <div className="rounded-md border border-border/60 p-2">
+            {supportedHotkeys.length === 0 ? (
+              <span className="text-xs text-muted-foreground">—</span>
+            ) : (
+              <ul className="space-y-0.5">
+                {supportedHotkeys.map((name) => {
+                  const hk = getHotkey(name);
+                  const keys = Array.isArray(hk?.keys) ? hk!.keys.join(", ") : hk?.keys;
+                  return (
+                    <li key={name} className="flex items-center justify-between text-xs">
+                      <span className="font-mono text-muted-foreground">{name}</span>
+                      <span className="font-mono">{keys ?? "—"}</span>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </div>
+
+          {/* Axes */}
+          <Separator className="my-2" />
+          <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            {t("settings.axes")}
+          </span>
+          <Row label={t("settings.axes.reverseY")}>
+            <Switch checked={reverseY} onCheckedChange={setReverseY} />
+          </Row>
+          <Row label={t("settings.axes.yInside")}>
+            <Switch checked={yInside} onCheckedChange={setYInside} />
           </Row>
         </ScrollArea>
 

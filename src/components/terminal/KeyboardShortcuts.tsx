@@ -6,6 +6,7 @@ import {
   useFullscreen,
   useReplay,
   useMeasure,
+  useHotkeys,
 } from "react-klinecharts-ui";
 import { useTerminalActions } from "./actions";
 
@@ -34,7 +35,21 @@ export function KeyboardShortcuts() {
   const { toggle: toggleFullscreen } = useFullscreen();
   const { startReplay } = useReplay();
   const { startMeasure } = useMeasure();
+  const { registerHotkey } = useHotkeys();
   const { open } = useTerminalActions();
+
+  // Register chart-scoped hotkeys through the library's klinecharts v10 hotkey
+  // system so they integrate with the chart's own handling and are surfaced in
+  // the Settings "Hotkeys" tab. App-level shortcuts (opening dialogs) stay on
+  // the bare listener below since they are not chart actions.
+  useEffect(() => {
+    registerHotkey({
+      name: "td:toggleTheme",
+      keys: "Alt+KeyT",
+      preventDefault: true,
+      action: () => toggleTheme(),
+    });
+  }, [registerHotkey, toggleTheme]);
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {

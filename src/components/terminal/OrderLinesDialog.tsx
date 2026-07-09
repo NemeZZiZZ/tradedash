@@ -50,10 +50,9 @@ export function OrderLinesDialog({ open, onOpenChange, initialPrice }: OrderLine
       onPriceChange: (np) =>
         setLines((ls) => ls.map((l) => (l.id === id ? { ...l, price: np } : l))),
     });
-    if (id) {
-      setLines((ls) => [...ls, { id, price: p, side }]);
-      setPrice("");
-    }
+    if (!id) return; // chart not ready; no line created, nothing to track
+    setLines((ls) => [...ls, { id, price: p, side }]);
+    setPrice("");
   };
 
   const remove = (id: string) => {

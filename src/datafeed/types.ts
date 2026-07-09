@@ -1,5 +1,5 @@
 import type { Datafeed, PartialSymbolInfo, TerminalPeriod } from "react-klinecharts-ui";
-import type { KLineData, SymbolInfo } from "react-klinecharts";
+import type { KLineData, SymbolInfo } from "klinecharts";
 
 export type { Datafeed, PartialSymbolInfo, TerminalPeriod, KLineData, SymbolInfo };
 

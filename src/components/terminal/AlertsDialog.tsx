@@ -1,5 +1,5 @@
-import { useEffect, useState } from "react";
-import { useAlerts } from "react-klinecharts-ui";
+import { useEffect, useMemo, useState } from "react";
+import { useAlerts, useKlinechartsUI } from "react-klinecharts-ui";
 import { useT } from "@/i18n";
 import type { AlertCondition } from "react-klinecharts-ui";
 import { Plus, Trash2, BellRing, Bell } from "lucide-react";
@@ -30,19 +30,46 @@ const CONDITIONS: { value: AlertCondition; labelKey: string }[] = [
 export function AlertsDialog({ open, onOpenChange, initialPrice }: AlertsDialogProps) {
   const t = useT();
   const { alerts, addAlert, removeAlert, clearAlerts } = useAlerts();
+  const { state } = useKlinechartsUI();
   const [price, setPrice] = useState("");
   const [condition, setCondition] = useState<AlertCondition>("crossing_up");
   const [message, setMessage] = useState("");
+  const [source, setSource] = useState<"price" | "indicator">("price");
+  const [indicatorId, setIndicatorId] = useState("");
+  const [figureKey, setFigureKey] = useState("");
 
   // Prefill the price when opened from a right-click on the chart.
   useEffect(() => {
     if (open && initialPrice != null) setPrice(String(initialPrice));
   }, [open, initialPrice]);
 
+  // Build the list of indicator figures from the chart so the user can alert on
+  // e.g. RSI crossing 70 or a MACD signal crossover.
+  const indOptions = useMemo(() => {
+    const chart = state.chart;
+    if (!chart) return [];
+    const all = chart.getIndicators?.() ?? [];
+    return all
+      .filter((i: { figures?: unknown[] }) => (i.figures?.length ?? 0) > 0)
+      .map((i: { id?: string; name?: string; figures?: { key?: string }[] }) => ({
+        indicatorId: i.id ?? i.name ?? "",
+        name: i.name ?? "",
+        figures: (i.figures ?? []).map((f: { key?: string }) => f.key ?? "").filter(Boolean),
+      }));
+  }, [state.chart]);
+
   const add = () => {
     const p = parseFloat(price);
     if (!Number.isFinite(p)) return;
-    addAlert(p, condition, message.trim() || undefined);
+    if (source === "indicator" && indicatorId && figureKey) {
+      addAlert(p, condition, message.trim() || undefined, undefined, {
+        type: "indicator",
+        indicatorId,
+        figureKey,
+      });
+    } else {
+      addAlert(p, condition, message.trim() || undefined);
+    }
     setPrice("");
     setMessage("");
   };
@@ -58,12 +85,57 @@ export function AlertsDialog({ open, onOpenChange, initialPrice }: AlertsDialogP
         </DialogHeader>
 
         <div className="space-y-2">
+          <div className="flex gap-1">
+            {(["price", "indicator"] as const).map((s) => (
+              <Button
+                key={s}
+                variant={source === s ? "secondary" : "ghost"}
+                size="sm"
+                onClick={() => setSource(s)}
+              >
+                {s === "price" ? t("al.price") : t("al.indicator")}
+              </Button>
+            ))}
+          </div>
+          {source === "indicator" && (
+            <div className="flex gap-2">
+              <select
+                value={indicatorId}
+                onChange={(e) => {
+                  setIndicatorId(e.target.value);
+                  setFigureKey("");
+                }}
+                className="h-8 flex-1 rounded-md border border-input bg-transparent px-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
+              >
+                <option value="" className="bg-popover">{t("al.indicatorPh")}</option>
+                {indOptions.map((o) => (
+                  <option key={o.indicatorId} value={o.indicatorId} className="bg-popover">
+                    {o.name}
+                  </option>
+                ))}
+              </select>
+              <select
+                value={figureKey}
+                onChange={(e) => setFigureKey(e.target.value)}
+                className="h-8 w-28 rounded-md border border-input bg-transparent px-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring/60"
+              >
+                <option value="" className="bg-popover">{t("al.figurePh")}</option>
+                {indOptions
+                  .find((o) => o.indicatorId === indicatorId)
+                  ?.figures.map((f) => (
+                    <option key={f} value={f} className="bg-popover">
+                      {f}
+                    </option>
+                  ))}
+              </select>
+            </div>
+          )}
           <div className="flex gap-2">
             <Input
               type="number"
               value={price}
               onChange={(e) => setPrice(e.target.value)}
-              placeholder={t("al.pricePh")}
+              placeholder={source === "indicator" ? t("al.thresholdPh") : t("al.pricePh")}
               className="h-8"
             />
             <select

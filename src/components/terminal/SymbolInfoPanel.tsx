@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useKlinechartsUI, TA } from "react-klinecharts-ui";
 import { useT } from "@/i18n";
 import type { TerminalPeriod } from "react-klinecharts-ui";
-import type { KLineData, SymbolInfo } from "react-klinecharts";
+import type { KLineData, SymbolInfo } from "klinecharts";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useLivePrice } from "@/hooks/use-live-price";
 import { cn, formatPrice, formatPercent, formatCompact } from "@/lib/utils";
@@ -23,9 +23,9 @@ function pctChange(
 }
 
 /** Performance % over standard horizons from a daily close series. */
-function computePerformance(daily: KLineData[]): Perf[] {
+function computePerformance(daily: KLineData[], liveLast?: number | null): Perf[] {
   if (daily.length === 0) return [];
-  const last = daily[daily.length - 1].close;
+  const last = liveLast ?? daily[daily.length - 1].close;
   const closeAgo = (days: number) => {
     const idx = daily.length - 1 - days;
     return idx >= 0 ? daily[idx].close : undefined;
@@ -199,7 +199,7 @@ export function SymbolInfoPanel() {
     };
   }, [ticker, datafeed, symbol, reloadKey]);
 
-  const performance = useMemo(() => computePerformance(daily), [daily]);
+  const performance = useMemo(() => computePerformance(daily, live.last), [daily, live.last]);
   const technicals = useMemo(
     () => computeTechnicals(state.chart?.getDataList?.() ?? daily),
     [daily, state.chart, live.last],
