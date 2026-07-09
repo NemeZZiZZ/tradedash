@@ -2,6 +2,8 @@ import { useCallback, useEffect, useMemo, useRef } from "react";
 import { KLineChart } from "react-klinecharts";
 import type { Chart } from "klinecharts";
 import { useKlinechartsUI, createDataLoader } from "react-klinecharts-ui";
+import { usePersistentState } from "@/hooks/use-persistent-state";
+import type { DatafeedRegistry } from "@/datafeed";
 import {
   ContextMenu,
   ContextMenuContent,
@@ -67,6 +69,37 @@ export function ChartView({ className }: ChartViewProps) {
     },
     [dispatch],
   );
+
+  // Depth-of-market overlay on the chart: toggled from the toolbar via the
+  // shared "chart.depth" persistent key. When on and the source supports a
+  // depth feed, subscribes and pushes snapshots to the depthOverlay.
+  const [depthOn] = usePersistentState("chart.depth", false);
+  const depthRegistry = datafeed as unknown as DatafeedRegistry;
+  const depthSymbol = state.symbol as Parameters<DatafeedRegistry["supportsDepth"]>[0];
+  const supportsDepth = depthSymbol ? depthRegistry.supportsDepth?.(depthSymbol) ?? false : false;
+  useEffect(() => {
+    const chart = state.chart;
+    const sym = depthSymbol;
+    if (!chart || !sym || !depthOn || !supportsDepth) return;
+    let overlayId: string | null = null;
+    const unsub = depthRegistry.subscribeDepth?.(sym, (snap) => {
+      if (!overlayId) {
+        const created = chart.createOverlay({
+          name: "depthOverlay",
+          points: [{ value: snap.asks[0]?.[0] ?? 0 }],
+          extendData: snap,
+        });
+        overlayId = typeof created === "string" ? created : Array.isArray(created) ? (created[0] ?? null) : null;
+      } else {
+        chart.overrideOverlay({ id: overlayId, extendData: snap });
+      }
+    });
+    return () => {
+      unsub?.();
+      if (overlayId) chart.removeOverlay?.({ id: overlayId });
+      overlayId = null;
+    };
+  }, [state.chart, depthSymbol, depthOn, supportsDepth, depthRegistry]);
 
   // Price under the last right-click, used to prefill the alert / order-line dialogs.
   const containerRef = useRef<HTMLDivElement>(null);

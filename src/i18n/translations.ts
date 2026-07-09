@@ -91,6 +91,14 @@ export const messages: Record<string, Entry> = {
   "ot.main": { en: "Main" },
   "ot.sub": { en: "Sub" },
 
+  // ── Alerts: indicator target ──────────────────────────────────────────
+  "al.source": { en: "Source" },
+  "al.price": { en: "Price" },
+  "al.indicator": { en: "Indicator" },
+  "al.indicatorPh": { en: "Select indicator" },
+  "al.figurePh": { en: "Figure" },
+  "al.thresholdPh": { en: "Threshold" },
+
   // ── Chart context menu ─────────────────────────────────────────────────
   "menu.addAlert": { en: "Add alert", ru: "Добавить алерт", es: "Añadir alerta", fr: "Ajouter une alerte", de: "Alarm hinzufügen", zh: "添加提醒", ja: "アラートを追加" },
   "menu.orderLine": { en: "Order line", ru: "Ордерная линия", es: "Línea de orden", fr: "Ligne d'ordre", de: "Orderlinie", zh: "订单线", ja: "注文ライン" },

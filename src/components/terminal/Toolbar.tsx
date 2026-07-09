@@ -20,6 +20,7 @@ import {
   BarChart3,
   Globe,
   Search,
+  BookOpen,
   ChevronDown,
   Undo2,
   Redo2,
@@ -56,6 +57,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useT } from "@/i18n";
+import { usePersistentState } from "@/hooks/use-persistent-state";
 import { useTerminalActions } from "./actions";
 import { LAYOUTS, type GridLayoutId } from "./workspace";
 import type { RoutedSymbolInfo } from "@/datafeed";
@@ -69,6 +71,9 @@ export function Toolbar({
 }) {
   const t = useT();
   const { state } = useKlinechartsUI();
+  const [depthOn, setDepthOn] = usePersistentState("chart.depth", false);
+  const depthSupported =
+    (state.datafeed as unknown as { supportsDepth?: (s: unknown) => boolean })?.supportsDepth?.(state.symbol ?? {}) ?? false;
   const { periods, activePeriod, setPeriod } = usePeriods();
   const { theme, toggleTheme } = useKlinechartsUITheme();
   const { candleType, candleTypes, setCandleType } = useKlinechartsUISettings();
@@ -200,6 +205,18 @@ export function Toolbar({
         <Button variant="ghost" size="sm" onClick={() => open("indicators")}>
           <BarChart3 className="size-4" />
           <span className="hidden lg:inline">{t("toolbar.indicators")}</span>
+        </Button>
+      </Tooltip>
+
+      {/* Depth-of-market overlay toggle */}
+      <Tooltip content={depthSupported ? t("ws.depth") : t("ws.depthUnsupported")}>
+        <Button
+          variant={depthOn && depthSupported ? "secondary" : "ghost"}
+          size="icon-sm"
+          disabled={!depthSupported}
+          onClick={() => setDepthOn((v) => !v)}
+        >
+          <BookOpen className="size-4" />
         </Button>
       </Tooltip>
 
