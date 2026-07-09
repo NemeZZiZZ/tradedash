@@ -1,7 +1,7 @@
 {
   "name": "tradedash",
   "private": true,
-  "version": "0.1.0",
+  "version": "1.0.0",
   "type": "module",
   "description": "TradingView-like trading terminal — a live demo of react-klinecharts-ui built with shadcn/Base UI",
   "homepage": "https://nemezzizz.github.io/tradedash/",
