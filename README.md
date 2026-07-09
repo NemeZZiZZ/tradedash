@@ -20,24 +20,28 @@ Every feature below is powered by a `react-klinecharts-ui` hook — the app is e
 | Symbols | `useSymbolSearch` | Search dialog, per-source filtering |
 | Timeframes | `usePeriods` | Toolbar group + number-key shortcuts |
 | Indicators | `useIndicators` | Catalog, params editor, visibility, collapse/reorder, **secondary Y-axis** |
-| Drawing | `useDrawingTools` | 26 tools, magnet, lock/visibility, freehand brush |
+| Drawing | `useDrawingTools` | 26 tools, magnet, lock/visibility, freehand brush, **per-drawing list** |
 | Order lines | `useOrderLines` | Draggable entry/stop lines with labels |
-| Alerts | `useAlerts` | Labelled price alerts + sound |
+| Alerts | `useAlerts` | Price **and indicator-value** alerts (RSI > 70, MACD cross) + sound |
 | Replay | `useReplay` | Bar-by-bar playback with scrubber |
 | Compare | `useCompare` | Overlay symbols normalized to % |
 | Measure / Notes | `useMeasure`, `useAnnotations` | Ruler readout, chart notes |
 | Layouts | `useLayoutManager` | Save / load / autosave |
 | Script editor | `useScriptEditor` | JS custom indicators |
-| Settings | `useKlinechartsUISettings` | Candle/axis/tooltip configuration |
+| Settings | `useKlinechartsUISettings`, `useChartAxes` | Candle/axis/tooltip config + axis overrides |
 | Theme / Fullscreen / Screenshot | `useKlinechartsUITheme`, `useFullscreen`, `useScreenshot` | Toolbar actions |
 | Timezone | `useTimezone` | 18 zones + live status-bar clock |
 | Export | `useDataExport` | CSV / JSON |
-| Hotkeys / Axes | `useHotkeys`, `useChartAxes` | Keyboard map, axis overrides |
+| Hotkeys | `useHotkeys` | Chart-scoped hotkeys registered via klinecharts v10; map + enable toggle in Settings |
+| **Multi-chart** | `WorkspaceProvider`, `useChartSync`, `useWorkspace` | 1 / 2 cols / 2 rows / 2×2 grid with synced crosshair/scroll/zoom |
+| **Persistence** | `storage` option | Alerts / settings / indicators survive reload via localStorage |
+| **Depth overlay** | `depthOverlay` ext. | Order-book depth on the chart (sources with a depth feed) |
 
 Plus UI assembled around the library:
 
-- **Pluggable datafeed** — an abstract registry aggregating multiple CORS-friendly sources (Binance, Bybit, OKX) with REST history + native kline WebSockets, plus an offline synthetic source.
-- **Right dock** — resizable panel stacking watchlist, symbol info (live price, performance, technicals gauge) and a scrollable order book; toggled from a far-right activity bar.
+- **Pluggable datafeed** — an abstract registry aggregating multiple CORS-friendly sources (Binance, Bybit, OKX) with REST history (with **lazy left-scroll pagination**) + native kline WebSockets, plus an offline synthetic source.
+- **Right dock** — resizable panel stacking watchlist, symbol info (live price, performance, technicals gauge), a scrollable order book, and an **object tree** (drawings/indicators/order-lines/notes/alerts with per-row visibility, lock, delete); toggled from a far-right activity bar.
+- **Multi-chart workspace** — a layout selector renders a 1/2/4-cell grid with synced crosshair/scroll/zoom; each non-primary cell has its own symbol/period toolbar.
 - **Command palette** (`Ctrl/Cmd+K`), **context menu**, **buy/sell on chart**, **price-flash watchlist**.
 - **16 languages** with browser detection and **RTL** support (Arabic).
 
