@@ -2,7 +2,6 @@ import { useCallback, useEffect, useMemo, useRef } from "react";
 import { KLineChart } from "react-klinecharts";
 import type { Chart } from "klinecharts";
 import { useKlinechartsUI, createDataLoader } from "react-klinecharts-ui";
-import { usePersistentState } from "@/hooks/use-persistent-state";
 import type { DatafeedRegistry } from "@/datafeed";
 import {
   ContextMenu,
@@ -70,10 +69,11 @@ export function ChartView({ className }: ChartViewProps) {
     [dispatch],
   );
 
-  // Depth-of-market overlay on the chart: toggled from the toolbar via the
-  // shared "chart.depth" persistent key. When on and the source supports a
-  // depth feed, subscribes and pushes snapshots to the depthOverlay.
-  const [depthOn] = usePersistentState("chart.depth", false);
+  // Depth-of-market overlay on the chart. `depthOn` comes from the shared
+  // actions context so the Toolbar toggle and this effect stay in sync.
+  // The raw DepthSnapshot {bids,asks} is transformed into the
+  // DepthOverlayExtendData {rows,maxQty} shape the depthOverlay template reads.
+  const { depthOn } = useTerminalActions();
   const depthRegistry = datafeed as unknown as DatafeedRegistry;
   const depthSymbol = state.symbol as Parameters<DatafeedRegistry["supportsDepth"]>[0];
   const supportsDepth = depthSymbol ? depthRegistry.supportsDepth?.(depthSymbol) ?? false : false;
@@ -81,17 +81,26 @@ export function ChartView({ className }: ChartViewProps) {
     const chart = state.chart;
     const sym = depthSymbol;
     if (!chart || !sym || !depthOn || !supportsDepth) return;
+    const toExtend = (snap: { bids: [number, number][]; asks: [number, number][] }) => {
+      const rows = [
+        ...snap.asks.map(([price, qty]) => ({ price, qty, side: "ask" as const })),
+        ...snap.bids.map(([price, qty]) => ({ price, qty, side: "bid" as const })),
+      ];
+      const maxQty = rows.reduce((m, r) => Math.max(m, r.qty), 0) || 1;
+      return { rows, maxQty };
+    };
     let overlayId: string | null = null;
     const unsub = depthRegistry.subscribeDepth?.(sym, (snap) => {
+      const extendData = toExtend(snap);
       if (!overlayId) {
         const created = chart.createOverlay({
           name: "depthOverlay",
           points: [{ value: snap.asks[0]?.[0] ?? 0 }],
-          extendData: snap,
+          extendData,
         });
         overlayId = typeof created === "string" ? created : Array.isArray(created) ? (created[0] ?? null) : null;
       } else {
-        chart.overrideOverlay({ id: overlayId, extendData: snap });
+        chart.overrideOverlay({ id: overlayId, extendData });
       }
     });
     return () => {

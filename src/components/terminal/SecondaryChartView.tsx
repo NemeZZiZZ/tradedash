@@ -1,5 +1,6 @@
-import { useCallback, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import { KLineChart } from "react-klinecharts";
+import type { Chart } from "klinecharts";
 import { useKlinechartsUI, createDataLoader } from "react-klinecharts-ui";
 import { cn } from "@/lib/utils";
 
@@ -16,21 +17,28 @@ export function SecondaryChartView({ className }: { className?: string }) {
     [datafeed, dispatch],
   );
 
+  // Mirror the latest indicator lists into refs so onReady (registered once on
+  // mount) reads the current lists rather than the stale first-render closure.
+  const mainIndicatorsRef = useRef(state.mainIndicators);
+  const subIndicatorsRef = useRef(state.subIndicators);
+  useEffect(() => {
+    mainIndicatorsRef.current = state.mainIndicators;
+    subIndicatorsRef.current = state.subIndicators;
+  }, [state.mainIndicators, state.subIndicators]);
+
   const handleReady = useCallback(
-    (chart: import("klinecharts").Chart) => {
+    (chart: Chart) => {
       dispatch({ type: "SET_CHART", chart });
-      state.mainIndicators.forEach((name) => {
+      mainIndicatorsRef.current.forEach((name) => {
         chart.createIndicator(
           { name, id: `main_${name}` },
           { isStack: true, pane: { id: "candle_pane" } },
         );
       });
-      Object.keys(state.subIndicators).forEach((name) => {
+      Object.keys(subIndicatorsRef.current).forEach((name) => {
         chart.createIndicator({ name, id: `sub_${name}` });
       });
     },
-    // Restore once per chart instance using the lists at mount time.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     [dispatch],
   );
 

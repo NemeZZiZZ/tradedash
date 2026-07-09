@@ -55,6 +55,10 @@ interface TerminalActions {
   screenshot: () => void;
   tradeMode: boolean;
   toggleTrade: () => void;
+  /** Depth-of-market overlay on the chart (shared so Toolbar toggle and the
+   *  ChartView subscription effect stay in sync). */
+  depthOn: boolean;
+  toggleDepth: () => void;
 }
 
 const Ctx = createContext<TerminalActions | null>(null);
@@ -110,10 +114,12 @@ export function TerminalActionsProvider({ children }: { children: React.ReactNod
 
   const [tradeMode, setTradeMode] = usePersistentState("trade.mode", false);
   const toggleTrade = useCallback(() => setTradeMode((v) => !v), [setTradeMode]);
+  const [depthOn, setDepthOn] = usePersistentState("chart.depth", false);
+  const toggleDepth = useCallback(() => setDepthOn((v) => !v), [setDepthOn]);
 
   const actions = useMemo<TerminalActions>(
-    () => ({ open, screenshot, tradeMode, toggleTrade }),
-    [open, screenshot, tradeMode, toggleTrade],
+    () => ({ open, screenshot, tradeMode, toggleTrade, depthOn, toggleDepth }),
+    [open, screenshot, tradeMode, toggleTrade, depthOn, toggleDepth],
   );
 
   const commands = useMemo<Command[]>(

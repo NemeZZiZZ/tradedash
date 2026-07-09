@@ -48,20 +48,24 @@ export function ObjectTreePanel() {
     onDel: () => removeDrawing(o.id),
   }));
   const indicatorRows: Row[] = [
-    ...mainIndicators.map((i) => ({
-      id: i.name,
-      label: `${i.name} (${t("ot.main")})`,
-      visible: isIndicatorVisible(i.name, true),
-      onToggleVis: () => setIndicatorVisible(i.name, true, !isIndicatorVisible(i.name, true)),
-      onDel: () => removeMainIndicator(i.name),
-    })),
-    ...subIndicators.map((i) => ({
-      id: i.name,
-      label: `${i.name} (${t("ot.sub")})`,
-      visible: isIndicatorVisible(i.name, false),
-      onToggleVis: () => setIndicatorVisible(i.name, false, !isIndicatorVisible(i.name, false)),
-      onDel: () => removeSubIndicator(i.name),
-    })),
+    ...mainIndicators
+      .filter((i) => i.isActive)
+      .map((i) => ({
+        id: `main_${i.name}`,
+        label: `${i.name} (${t("ot.main")})`,
+        visible: isIndicatorVisible(i.name, true),
+        onToggleVis: () => setIndicatorVisible(i.name, true, !isIndicatorVisible(i.name, true)),
+        onDel: () => removeMainIndicator(i.name),
+      })),
+    ...subIndicators
+      .filter((i) => i.isActive)
+      .map((i) => ({
+        id: `sub_${i.name}`,
+        label: `${i.name} (${t("ot.sub")})`,
+        visible: isIndicatorVisible(i.name, false),
+        onToggleVis: () => setIndicatorVisible(i.name, false, !isIndicatorVisible(i.name, false)),
+        onDel: () => removeSubIndicator(i.name),
+      })),
   ];
   const noteRows: Row[] = annotations.map((a) => ({
     id: a.id,

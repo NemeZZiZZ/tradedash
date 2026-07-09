@@ -57,7 +57,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useT } from "@/i18n";
-import { usePersistentState } from "@/hooks/use-persistent-state";
 import { useTerminalActions } from "./actions";
 import { LAYOUTS, type GridLayoutId } from "./workspace";
 import type { RoutedSymbolInfo } from "@/datafeed";
@@ -71,7 +70,7 @@ export function Toolbar({
 }) {
   const t = useT();
   const { state } = useKlinechartsUI();
-  const [depthOn, setDepthOn] = usePersistentState("chart.depth", false);
+  const { open, screenshot, tradeMode, toggleTrade, depthOn, toggleDepth } = useTerminalActions();
   const depthSupported =
     (state.datafeed as unknown as { supportsDepth?: (s: unknown) => boolean })?.supportsDepth?.(state.symbol ?? {}) ?? false;
   const { periods, activePeriod, setPeriod } = usePeriods();
@@ -83,7 +82,6 @@ export function Toolbar({
   const { startReplay } = useReplay();
   const { startMeasure } = useMeasure();
   const { exportAll } = useDataExport();
-  const { open, screenshot, tradeMode, toggleTrade } = useTerminalActions();
 
   const source =
     (state.symbol as RoutedSymbolInfo | null)?.source ??
@@ -214,7 +212,7 @@ export function Toolbar({
           variant={depthOn && depthSupported ? "secondary" : "ghost"}
           size="icon-sm"
           disabled={!depthSupported}
-          onClick={() => setDepthOn((v) => !v)}
+          onClick={toggleDepth}
         >
           <BookOpen className="size-4" />
         </Button>
