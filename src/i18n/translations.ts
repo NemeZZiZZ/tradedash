@@ -99,6 +99,13 @@ export const messages: Record<string, Entry> = {
   "al.figurePh": { en: "Figure" },
   "al.thresholdPh": { en: "Threshold" },
 
+  // ── Settings: hotkeys + axes ──────────────────────────────────────────
+  "settings.hotkeys": { en: "Hotkeys" },
+  "settings.hotkeysEnabled": { en: "Hotkeys enabled" },
+  "settings.axes": { en: "Axes" },
+  "settings.axes.reverseY": { en: "Reverse Y axis" },
+  "settings.axes.yInside": { en: "Y axis inside" },
+
   // ── Chart context menu ─────────────────────────────────────────────────
   "menu.addAlert": { en: "Add alert", ru: "Добавить алерт", es: "Añadir alerta", fr: "Ajouter une alerte", de: "Alarm hinzufügen", zh: "添加提醒", ja: "アラートを追加" },
   "menu.orderLine": { en: "Order line", ru: "Ордерная линия", es: "Línea de orden", fr: "Ligne d'ordre", de: "Orderlinie", zh: "订单线", ja: "注文ライン" },
