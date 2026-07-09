@@ -38,6 +38,10 @@ import {
   Command as CommandIcon,
   MoreHorizontal,
   CircleDollarSign,
+  LayoutGrid,
+  Square,
+  Columns2,
+  Rows2,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -53,9 +57,16 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useT } from "@/i18n";
 import { useTerminalActions } from "./actions";
+import { LAYOUTS, type GridLayoutId } from "./workspace";
 import type { RoutedSymbolInfo } from "@/datafeed";
 
-export function Toolbar() {
+export function Toolbar({
+  layoutId,
+  onLayoutChange,
+}: {
+  layoutId: GridLayoutId;
+  onLayoutChange: (id: GridLayoutId) => void;
+}) {
   const t = useT();
   const { state } = useKlinechartsUI();
   const { periods, activePeriod, setPeriod } = usePeriods();
@@ -78,6 +89,33 @@ export function Toolbar() {
 
   return (
     <>
+      {/* Layout selector (1 / 2 cols / 2 rows / 2×2). */}
+      <DropdownMenu>
+        <Tooltip content={t("ws.layout")}>
+          <DropdownMenuTrigger
+            render={
+              <Button variant="ghost" size="icon-sm">
+                <LayoutGrid className="size-4" />
+              </Button>
+            }
+          />
+        </Tooltip>
+        <DropdownMenuContent align="start">
+          <DropdownMenuLabel>{t("ws.layout")}</DropdownMenuLabel>
+          {LAYOUTS.map((l) => {
+            const Icon = l.id === "single" ? Square : l.id === "cols2" ? Columns2 : l.id === "rows2" ? Rows2 : LayoutGrid;
+            return (
+              <DropdownMenuItem key={l.id} onClick={() => onLayoutChange(l.id)}>
+                {layoutId === l.id ? <Check className="size-3.5" /> : <Icon className="size-3.5" />}
+                {t(`ws.${l.id}`)}
+              </DropdownMenuItem>
+            );
+          })}
+        </DropdownMenuContent>
+      </DropdownMenu>
+
+      <Separator orientation="vertical" className="mx-1 h-5" />
+
       <Button
         variant="ghost"
         size="sm"
